@@ -8,9 +8,9 @@ def exit_handler():
     """
     Runs before exit, including if a KeyboardInterrupt is encountered
     """
-    # if db_interface is not None:
-    print('Closing tunneled ssh connection to database...')
-    db_interface.close()
+    if db_interface is not None:
+        print('Closing tunneled ssh connection to database...')
+        db_interface.close()
 
 
 atexit.register(exit_handler)
@@ -33,4 +33,7 @@ if __name__ == '__main__':
     # stream = MyStreamer()
     # # Start the stream
     # stream.statuses.filter(track='trump')
+
     db_interface.close()
+    # Shut down the process data-sharing server
+    base_manager.shutdown()

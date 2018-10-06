@@ -40,10 +40,11 @@ class DBInterface:
         """
         self.ssh_tunnel.close()
 
-    def run_command(self, command_string: str):
+    def run_command(self, command_string: str, args_tuple: tuple = None):
         """
         Runs a SQL command on the remote server over an SSH VPN tunnel
         :param command_string: SQL command string to run
+        :param args_tuple: tuple of parameter values to use in command string
         :return: cursor object with data gathered from database
         """
         try:
@@ -58,5 +59,9 @@ class DBInterface:
             print(f'Unable to connect to the database: {e}')
         else:
             cursor = conn.cursor()
-            cursor.execute(command_string)
+            if args_tuple is not None:
+                cursor.execute(command_string, args_tuple)
+            else:
+                cursor.execute(command_string)
+
             return cursor.fetchall()
