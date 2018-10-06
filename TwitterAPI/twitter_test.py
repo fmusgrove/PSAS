@@ -1,5 +1,7 @@
 import os
 from json import load
+
+import requests
 from twython import TwythonStreamer
 import csv
 
@@ -11,10 +13,10 @@ def process_tweet(tweet):
 
 # Create a class that inherits TwythonStreamer
 class MyStreamer(TwythonStreamer):
-    def __init__(self, settings_file: str = '../res/twitter_api_credentials.json',database_interface=None):
+    def __init__(self, settings_file: str = '../res/twitter_api_credentials.json', database_interface=None):
         self.count = 0
         self.tweet_array = []
-        self.database_interface=database_interface
+        self.database_interface = database_interface
         with open(settings_file, 'r', encoding='utf-8') as settings_data:
             settings = load(settings_data)
             # twitter api settings
@@ -34,19 +36,9 @@ class MyStreamer(TwythonStreamer):
     # Problem with the API
     def on_error(self, status_code, data):
         print(status_code, data)
-        self.disconnect()
+        #self.disconnect()
 
     def fill_tweet_array(self, tweet):
-        if self.count < 100:
-            self.count += 1
-            tweet_values = tweet.values()
-            if len(str(tweet_values)) > 50:
-                self.tweet_array.append(tweet.values())
-        else:
-            MyStreamer.count = 0
-            with open(r'saved_tweets.csv', 'w', encoding='utf-8') as file:
-                writer = csv.writer(file)
-                for row in self.tweet_array:
-                    writer.writerow(row)
-
-
+        pass
+        #self.database_interface.run_command("INSERT INTO temp_tweet_table(tweet,time) VALUES (%s,%s)",
+                                            # (tweet['text'], tweet['time']), should_return=False)
