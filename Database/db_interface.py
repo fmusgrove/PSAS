@@ -28,6 +28,12 @@ class DBInterface:
                                              local_bind_address=('localhost', self.PORT))
         self.ssh_tunnel.start()
 
+    def __str__(self):
+        if self.ssh_tunnel.is_active:
+            return f'DBInterface object connected via ssh tunnel to {self.REMOTE_HOST} on local port {self.PORT}'
+        else:
+            return 'DBInterface object not currently connected to a tunnel'
+
     def close(self):
         """
         Must be called before exiting
