@@ -59,4 +59,4 @@ class DBInterface:
         else:
             cursor = conn.cursor()
             cursor.execute(command_string)
-            return cursor
+            return cursor.fetchall()
