@@ -67,3 +67,5 @@ class DBInterface:
 
             if should_return:
                 return cursor.fetchall()
+            else:
+                conn.commit()
