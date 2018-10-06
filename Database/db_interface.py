@@ -40,11 +40,12 @@ class DBInterface:
         """
         self.ssh_tunnel.close()
 
-    def run_command(self, command_string: str, args_tuple: tuple = None):
+    def run_command(self, command_string: str, args_tuple: tuple = None, should_return=True):
         """
         Runs a SQL command on the remote server over an SSH VPN tunnel
         :param command_string: SQL command string to run
         :param args_tuple: tuple of parameter values to use in command string
+        :param should_return: flag for whether the cursor returns data or not
         :return: cursor object with data gathered from database
         """
         try:
@@ -64,4 +65,5 @@ class DBInterface:
             else:
                 cursor.execute(command_string)
 
-            return cursor.fetchall()
+            if should_return:
+                return cursor.fetchall()
