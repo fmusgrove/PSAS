@@ -1,14 +1,15 @@
-import os
 from json import load
-
-import requests
 from twython import TwythonStreamer
-import csv
+from unidecode import unidecode
 
 
 # Filter out unwanted data
 def process_tweet(tweet):
-    return {'text': tweet['text'], 'time': tweet['created_at']}
+    if tweet['truncated']:
+        data = unidecode(tweet['extended_tweet']['full_text'])
+    else:
+        data = unidecode(tweet['text'])
+    return {'text': data, 'time': unidecode(tweet['created_at'])}
 
 
 # Create a class that inherits TwythonStreamer
@@ -36,9 +37,8 @@ class MyStreamer(TwythonStreamer):
     # Problem with the API
     def on_error(self, status_code, data):
         print(status_code, data)
-        #self.disconnect()
+        # self.disconnect()
 
     def fill_tweet_array(self, tweet):
-        pass
-        #self.database_interface.run_command("INSERT INTO temp_tweet_table(tweet,time) VALUES (%s,%s)",
-                                            # (tweet['text'], tweet['time']), should_return=False)
+        self.database_interface.run_command("INSERT INTO temp_tweet_table(time,tweet) VALUES (%s,%s)",
+                                            (tweet['time'], tweet['text']), should_return=False)
