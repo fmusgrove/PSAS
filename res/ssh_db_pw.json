@@ -1,0 +1,15 @@
+{
+  "SSH_TUNNEL": {
+    "PORT": 5432,
+    "REMOTE_HOST": "25.6.255.110",
+    "REMOTE_SSH_PORT": 22,
+    "REMOTE_USERNAME": "forrest",
+    "REMOTE_PASSWORD": "ZLrkQLy5wJpy"
+  },
+  "DATABASE": {
+    "DB_NAME": "psas",
+    "DB_USER": "psas",
+    "DB_HOST": "localhost",
+    "DB_PASS": "ZLrkQLy5wJpy"
+  }
+}
