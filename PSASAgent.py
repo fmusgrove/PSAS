@@ -1,6 +1,7 @@
 from Database.db_interface import DBInterface
 from TwitterAPI.twitter_test import MyStreamer
 from multiprocessing.managers import BaseManager
+from SentimentCompute.sentiment_index import SentimentIndex
 
 if __name__ == '__main__':
     # Base manager registration for DBInterface class
@@ -13,7 +14,8 @@ if __name__ == '__main__':
     # Creating the DBInterface object will open the ssh tunnel, must be closed before exiting
     db_interface = base_manager.DBInterface('res/ssh_db_pw.json')  # PyCharm isn't aware of abstract classes...
 
-    print(db_interface.run_command("SELECT * FROM twitter"))
+    sentiment_agent = SentimentIndex(db_interface)
+    sentiment_agent.pull_tweets()
 
     # db.run_command()
     # # Instantiate from our streaming class
