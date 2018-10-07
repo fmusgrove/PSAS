@@ -37,8 +37,9 @@ class MyStreamer(TwythonStreamer):
     # Problem with the API
     def on_error(self, status_code, data):
         print(status_code, data)
-        # self.disconnect()
+        #self.disconnect()
 
     def fill_tweet_array(self, tweet):
-        self.database_interface.run_command("INSERT INTO temp_tweet_table(time,tweet) VALUES (%s,%s)",
-                                            (tweet['time'], tweet['text']), should_return=False)
+        pass
+        # self.database_interface.run_command("INSERT INTO temp_tweet_table(time,tweet) VALUES (%s,%s)",
+        #                                     (tweet['time'], tweet['text']), should_return=False)

@@ -15,7 +15,6 @@ class SentimentIndex(ConnectedProcess):
         msg = ''
         while not msg == 'EXIT':
             msg = self.message_pipe['pipe_out'].recv()
-            # Handle messages here
 
         self.should_exit = True
         self._close()
@@ -28,18 +27,15 @@ class SentimentIndex(ConnectedProcess):
             vs = self.analyzer.polarity_scores(tweet[1])
             print(tweet[1], vs['compound'])
 
-    def compute_sentiment(self, tweet):
+    def compute_sentiment(self, tweet, table_name):
         """
         Calculates the sentiment score and saves the value to the database
         :param tweet: tweet string to compute sentiment from
         """
-        pass
-
-    def _start_work(self):
-        """
-        Main entry point for new process, ran on separate thread from _message_listener
-        """
-        pass
+        vs = self.analyzer.polarity_scores(tweet[1])
+        self.database_interface.run_command("INSERT INTO %s(time,tweet) VALUES (%s,%s)",
+                                            (table_name, vs, tweet['text']),
+                                            should_return=False)
 
     def _close(self):
         """
