@@ -4,7 +4,7 @@ from sshtunnel import SSHTunnelForwarder
 
 
 class DBInterface:
-    def __init__(self, settings_file: str = '../res/ssh_db_pw.json'):
+    def __init__(self, settings_file: str = 'res/ssh_db_pw.json', should_tunnel=True):
         with open(settings_file, 'r', encoding='utf-8') as settings_data:
             settings = load(settings_data)
             # Remote server settings
@@ -20,13 +20,16 @@ class DBInterface:
             self.DB_HOST = settings['DATABASE']['DB_HOST']
             self.DB_PASS = settings['DATABASE']['DB_PASS']
 
+        self.should_tunnel = should_tunnel
+
         # Setup ssh vpn tunnel
-        self.ssh_tunnel = SSHTunnelForwarder((self.REMOTE_HOST, self.REMOTE_SSH_PORT),
-                                             ssh_username=self.REMOTE_USERNAME,
-                                             ssh_password=self.REMOTE_PASSWORD,
-                                             remote_bind_address=('localhost', self.PORT),
-                                             local_bind_address=('localhost', self.PORT))
-        self.ssh_tunnel.start()
+        if should_tunnel:
+            self.ssh_tunnel = SSHTunnelForwarder((self.REMOTE_HOST, self.REMOTE_SSH_PORT),
+                                                 ssh_username=self.REMOTE_USERNAME,
+                                                 ssh_password=self.REMOTE_PASSWORD,
+                                                 remote_bind_address=('localhost', self.PORT),
+                                                 local_bind_address=('localhost', self.PORT))
+            self.ssh_tunnel.start()
 
     def __str__(self):
         if self.ssh_tunnel.is_active:
@@ -49,13 +52,22 @@ class DBInterface:
         :return: cursor object with data gathered from database
         """
         try:
-            conn = psycopg2.connect(
-                database=self.DB_NAME,
-                user=self.DB_USER,
-                password=self.DB_PASS,
-                host=self.ssh_tunnel.local_bind_host,
-                port=self.ssh_tunnel.local_bind_port,
-            )
+            if self.should_tunnel:
+                conn = psycopg2.connect(
+                    database=self.DB_NAME,
+                    user=self.DB_USER,
+                    password=self.DB_PASS,
+                    host=self.ssh_tunnel.local_bind_host,
+                    port=self.ssh_tunnel.local_bind_port,
+                )
+            else:
+                conn = psycopg2.connect(
+                    database=self.DB_NAME,
+                    user=self.DB_USER,
+                    password=self.DB_PASS,
+                    host=self.DB_HOST,
+                    port=self.PORT,
+                )
         except Exception as e:
             print(f'Unable to connect to the database: {e}')
         else:

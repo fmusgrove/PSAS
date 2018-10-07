@@ -7,8 +7,8 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 # Create a class that inherits TwythonStreamer
 class TwitterFirehose(ConnectedProcess, TwythonStreamer):
-    def __init__(self, settings_file: str = '../res/twitter_api_credentials.json', features='twitter',
-                 table_name='twitter',
+    def __init__(self, settings_file: str = '../res/twitter_api_credentials.json',
+                 feature_data=None,
                  database_interface=None,
                  message_pipes=None):
         with open(settings_file, 'r', encoding='utf-8') as settings_data:
@@ -18,7 +18,7 @@ class TwitterFirehose(ConnectedProcess, TwythonStreamer):
             self.CONSUMER_SECRET = settings['CONSUMER_SECRET']
             self.ACCESS_TOKEN = settings['ACCESS_TOKEN']
             self.ACCESS_SECRET = settings['ACCESS_SECRET']
-        ConnectedProcess.__init__(self, name=f'Twitter Firehose {table_name}', database_interface=database_interface,
+        ConnectedProcess.__init__(self, name='Twitter Firehose', database_interface=database_interface,
                                   message_pipes=message_pipes)
         TwythonStreamer.__init__(self, app_key=self.CONSUMER_KEY, app_secret=self.CONSUMER_SECRET,
                                  oauth_token=self.ACCESS_TOKEN,
@@ -26,14 +26,14 @@ class TwitterFirehose(ConnectedProcess, TwythonStreamer):
         self.count = 0
         self.database_interface = database_interface
         self.analyzer = SentimentIntensityAnalyzer()
-        self.features = features
-        self.table_name = table_name
-        self.tweet_time_slice = []
+        self.feature_data = feature_data
+        self.tracking_features = ', '.join([feature for feature in feature_data.values()])
+        self.tweet_time_slice = {table_name: [] for table_name in feature_data.keys()}
 
     def _message_listener(self):
         msg = ''
         while not msg == 'EXIT':
-            msg = self.message_pipes.get_pipes()[f'{self.table_name}_firehose']['pipe_out'].recv()
+            msg = self.message_pipes.get_pipes()['twitter_firehose']['pipe_out'].recv()
             if msg == 'COMPUTE':
                 self.compute_sentiment()
 
@@ -44,13 +44,13 @@ class TwitterFirehose(ConnectedProcess, TwythonStreamer):
         """
         Main entry point for new process, ran on separate thread from _message_listener
         """
-        self.statuses.filter(track=self.features)
+        self.statuses.filter(track=self.tracking_features)
 
     def _close(self):
         """
         Called after exit poison pill is received
         """
-        print(f'Closing firehose {self.table_name}')
+        print('Closing Twitter firehose')
         self.disconnect()
 
     # Filter out unwanted data
@@ -71,7 +71,10 @@ class TwitterFirehose(ConnectedProcess, TwythonStreamer):
         if 'lang' in data:
             if data['lang'] == 'en':
                 tweet_data = self.process_tweet(data)
-                self.tweet_time_slice.append(tweet_data)
+                for table_name, features in self.feature_data.items():
+                    for word in features.split(','):
+                        if word in tweet_data['text']:
+                            self.tweet_time_slice[table_name].append(tweet_data)
 
     def on_error(self, status_code, data):
         print(status_code, data)
@@ -81,14 +84,15 @@ class TwitterFirehose(ConnectedProcess, TwythonStreamer):
         """
         Calculates the sentiment score and saves the value to the database
         """
-        if len(self.tweet_time_slice) > 0:
-            total = 0
-            for tweet in self.tweet_time_slice:
-                vs = self.analyzer.polarity_scores(tweet['text'])
-                total += vs['compound']
+        for table_name, tweet_list in self.tweet_time_slice.items():
+            if len(tweet_list) > 0:
+                total = 0
+                for tweet in tweet_list:
+                    vs = self.analyzer.polarity_scores(tweet['text'])
+                    total += vs['compound']
 
-            average = total / len(self.tweet_time_slice)
-            print(average)
-            self.tweet_time_slice = []
-            self.database_interface.run_command(
-                f"INSERT INTO {self.table_name} VALUES (current_timestamp, {average})", should_return=False)
+                average = total / len(tweet_list)
+                print(average)
+                self.tweet_time_slice[table_name] = []
+                self.database_interface.run_command(
+                    f"INSERT INTO {table_name} VALUES (current_timestamp, {average})", should_return=False)
