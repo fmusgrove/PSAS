@@ -1,10 +1,11 @@
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from Utility.connected_process import ConnectedProcess
 
 
-class SentimentIndex:
+class SentimentIndex(ConnectedProcess):
     def __init__(self, database_interface=None, message_pipe=None):
-        self.database_interface = database_interface
-        self.message_pipe = message_pipe
+        super(SentimentIndex).__init__(name='PSAS Sentiment', database_interface=database_interface,
+                                       message_pipe=message_pipe)
         self.TWEET_COUNT = 5  # Temporarily keep only a certain number of tweets
         self.tweets = []
         self.analyzer = SentimentIntensityAnalyzer()
