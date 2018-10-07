@@ -3,8 +3,13 @@ bcrypt==3.1.4
 certifi==2018.8.24
 cffi==1.11.5
 chardet==3.0.4
+Click==7.0
 cryptography==2.3.1
+Flask==1.0.2
 idna==2.7
+itsdangerous==0.24
+Jinja2==2.10
+MarkupSafe==1.0
 oauthlib==2.1.0
 paramiko==2.4.2
 psycopg2==2.7.5
@@ -19,3 +24,4 @@ twython==3.7.0
 Unidecode==1.0.22
 urllib3==1.23
 vaderSentiment==3.2.1
+Werkzeug==0.14.1
