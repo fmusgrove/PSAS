@@ -1,5 +1,5 @@
 from Database.db_interface import DBInterface
-from TwitterAPI.twitter_test import MyStreamer
+from TwitterAPI.twitter_firehose import TwitterFirehose
 from multiprocessing.managers import BaseManager
 from SentimentCompute.sentiment_index import SentimentIndex
 
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     sentiment_agent = SentimentIndex(db_interface)
     sentiment_agent.pull_tweets()
 
-    stream = MyStreamer('res/twitter_api_credentials.json', db_interface)
+    stream = TwitterFirehose('res/twitter_api_credentials.json', db_interface)
     # Start the stream
     # while True:
     #     try:
