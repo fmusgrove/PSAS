@@ -6,8 +6,10 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
-    return json.dumps({'values': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, ]})
+    return json.dumps({"fortnite": {"score": [75, 80, 76, 70],
+                                    "timestamp": ["2018-10-06T19:20+01:00", "2018-10-06T19:20+01:00",
+                                                  "2018-10-06T19:20+01:00", "2018-10-06T19:20+01:00"]}})
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')
