@@ -9,11 +9,11 @@ from abc import ABCMeta, abstractmethod
 class ConnectedProcess(Process):
     __metaclass__ = ABCMeta
 
-    def __init__(self, name='Unnamed Connected Process', database_interface=None, message_pipe=None):
+    def __init__(self, name='Unnamed Connected Process', database_interface=None, message_pipes=None):
         super(ConnectedProcess, self).__init__(name=name)
         self.daemon = True
         self.database_interface = database_interface
-        self.message_pipe = message_pipe
+        self.message_pipes = message_pipes
         self.threads = {}
 
     def run(self):

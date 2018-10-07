@@ -8,7 +8,7 @@ from Utility.connected_process import ConnectedProcess
 class TwitterFirehose(TwythonStreamer, ConnectedProcess):
     def __init__(self, settings_file: str = '../res/twitter_api_credentials.json', feature='twitter',
                  database_interface=None,
-                 message_pipe=None):
+                 message_pipes=None):
         with open(settings_file, 'r', encoding='utf-8') as settings_data:
             settings = load(settings_data)
             # twitter api settings
@@ -18,7 +18,7 @@ class TwitterFirehose(TwythonStreamer, ConnectedProcess):
             self.ACCESS_SECRET = settings['ACCESS_SECRET']
         super(TwitterFirehose).__init__(self.CONSUMER_KEY, self.CONSUMER_SECRET, self.ACCESS_TOKEN, self.ACCESS_SECRET)
         super(TwitterFirehose).__init__(name='PSAS Twitter Firehose', database_interface=database_interface,
-                                        message_pipe=message_pipe)
+                                        message_pipes=message_pipes)
         self.count = 0
         self.tweet_array = []
         self.database_interface = database_interface
@@ -27,7 +27,7 @@ class TwitterFirehose(TwythonStreamer, ConnectedProcess):
     def _message_listener(self):
         msg = ''
         while not msg == 'EXIT':
-            msg = self.message_pipe['pipe_out'].recv()
+            msg = self.message_pipes.get_pipes()['twitter_firehose']['pipe_out'].recv()
             # Handle messages here
 
         self.should_exit = True
@@ -44,6 +44,8 @@ class TwitterFirehose(TwythonStreamer, ConnectedProcess):
         Called after exit poison pill is received
         """
         self.disconnect()
+        for thread in self.threads:
+            thread.join()
 
     # Filter out unwanted data
     def process_tweet(self, tweet):
@@ -63,7 +65,8 @@ class TwitterFirehose(TwythonStreamer, ConnectedProcess):
         if 'lang' in data:
             if data['lang'] == 'en':
                 tweet_data = self.process_tweet(data)
-                self.fill_tweet_array(tweet_data)
+                self.message_pipes.get_pipes()['sentiment_index']['pipe_in'].send({'tweet': tweet_data,
+                                                                                   'feature': self.feature})
 
     def on_error(self, status_code, data):
         print(status_code, data)

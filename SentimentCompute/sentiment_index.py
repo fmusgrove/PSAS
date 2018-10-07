@@ -3,9 +3,9 @@ from Utility.connected_process import ConnectedProcess
 
 
 class SentimentIndex(ConnectedProcess):
-    def __init__(self, database_interface=None, message_pipe=None):
+    def __init__(self, database_interface=None, message_pipes=None):
         super(SentimentIndex).__init__(name='PSAS Sentiment', database_interface=database_interface,
-                                       message_pipe=message_pipe)
+                                       message_pipe=message_pipes)
         self.TWEET_COUNT = 5  # Temporarily keep only a certain number of tweets
         self.tweets = []
         self.analyzer = SentimentIntensityAnalyzer()
@@ -14,7 +14,9 @@ class SentimentIndex(ConnectedProcess):
     def _message_listener(self):
         msg = ''
         while not msg == 'EXIT':
-            msg = self.message_pipe['pipe_out'].recv()
+            msg = self.message_pipes.get_pipes()['sentiment_index']['pipe_out'].recv()
+            if 'tweet' in msg:
+                self.compute_sentiment(msg['tweet'], msg['feature'].split(',')[0])
 
         self.should_exit = True
         self._close()
@@ -31,6 +33,7 @@ class SentimentIndex(ConnectedProcess):
         """
         Calculates the sentiment score and saves the value to the database
         :param tweet: tweet string to compute sentiment from
+        :param table_name: name of table to store data to
         """
         vs = self.analyzer.polarity_scores(tweet[1])
         self.database_interface.run_command("INSERT INTO %s(time,tweet) VALUES (%s,%s)",
@@ -41,4 +44,5 @@ class SentimentIndex(ConnectedProcess):
         """
         Called after exit poison pill is received
         """
-        pass
+        for thread in self.threads:
+            thread.join()
