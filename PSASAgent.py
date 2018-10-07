@@ -19,18 +19,17 @@ if __name__ == '__main__':
 
     stream = MyStreamer('res/twitter_api_credentials.json', db_interface)
     # Start the stream
-    while True:
-        try:
-            stream.statuses.filter(track='money')
-        except:
-            print("error")
-            continue
+    # while True:
+    #     try:
+    #         stream.statuses.filter(track='money')
+    #     except:
+    #         print("error")
+    #         continue
     # db.run_command()
     # # Instantiate from our streaming class
     # stream = MyStreamer()
     # # Start the stream
     # stream.statuses.filter(track='trump')
-
 
     db_interface.close()
     # Shut down the process data-sharing server
