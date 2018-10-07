@@ -1,14 +1,20 @@
 import json
 from flask import Flask
+from Database.db_interface import DBInterface
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def hello_world():
-    return json.dumps({"fortnite": {"score": [75, 80, 76, 70],
-                                    "timestamp": ["2018-10-06T19:20+01:00", "2018-10-06T19:20+01:00",
-                                                  "2018-10-06T19:20+01:00", "2018-10-06T19:20+01:00"]}})
+    db_interface = DBInterface()
+    row_data = db_interface.run_command("SELECT * FROM elon_musk")
+
+    time = [str(row[0]) for row in row_data]
+    metric = [row[1] for row in row_data]
+
+    return json.dumps({"elon_musk": {"score": metric,
+                                     "timestamp": time}})
 
 
 if __name__ == '__main__':

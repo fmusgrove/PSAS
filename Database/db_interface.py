@@ -4,7 +4,7 @@ from sshtunnel import SSHTunnelForwarder
 
 
 class DBInterface:
-    def __init__(self, settings_file: str = 'res/ssh_db_pw.json'):
+    def __init__(self, settings_file: str = '../res/ssh_db_pw.json'):
         with open(settings_file, 'r', encoding='utf-8') as settings_data:
             settings = load(settings_data)
             # Remote server settings
